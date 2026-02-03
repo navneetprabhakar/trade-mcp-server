@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: trade-mcp-server
+  ai:
+    mcp:
+      server:
+        name: trade-mcp-server
+        version: 1.0.0
+        type: sync
+        protocol: streamable
+        stdio: false
+        enabled: true
+
+groww:
+  base-url: https://api.groww.in/v1/
+  api-key: ${GROWW_API_KEY}
+  secret: ${GROWW_SECRET_KEY}
+  token-url: token/api/access
+
+server:
+  port: 8082
+  connection-timeout: 90s
