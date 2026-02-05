@@ -28,6 +28,9 @@ groww:
   secret: ${GROWW_SECRET_KEY}
   token-url: token/api/access
   historic-data-url: historical/candles
+  holdings-url: holdings/user
+  positions-url: positions/user
+  positions-trading-url: positions/trading-symbol
 
 server:
   port: 8082

@@ -3,11 +3,14 @@ package com.navneet.trade.service.helper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.navneet.trade.constants.GrowwConstants;
+import com.navneet.trade.constants.Segment;
 import com.navneet.trade.entity.Instruments;
 import com.navneet.trade.entity.repo.InstrumentsRepo;
 import com.navneet.trade.models.EntityRequest;
 import com.navneet.trade.models.HistoricDataRequest;
 import com.navneet.trade.models.HistoricDataResponse;
+import com.navneet.trade.models.HoldingsResponse;
+import com.navneet.trade.models.PositionsResponse;
 import com.navneet.trade.models.TokenRequest;
 import com.navneet.trade.models.TokenResponse;
 import com.navneet.trade.utils.GrowwUtils;
@@ -163,6 +166,74 @@ public class GrowwServiceHelper {
       log.error("Error reading CSV file: {}", csvFilePath, e);
       throw e;
     }
+  }
+
+  /**
+   * Fetch current holdings from Groww API
+   * @return HoldingsResponse containing list of current holdings
+   * @throws JsonProcessingException If response parsing fails
+   */
+  public HoldingsResponse fetchHoldings() throws JsonProcessingException {
+    log.info("Fetching current holdings ");
+    ResponseEntity<String> response=restUtils.restGetCall(constants.getBaseUrl()+constants.getHoldingsUrl(),generateHeaders(), null);
+    if(response.getStatusCode().is2xxSuccessful()){
+      return mapper.readValue(response.getBody(), HoldingsResponse.class);
+    }else{
+      log.warn("Unable to fetch current holdings. Status Code: {}, Response Body: {}", response.getStatusCode(), response.getBody());
+    }
+    return null;
+  }
+
+  /**
+   * Fetch current positions from Groww API for a given segment
+   * @param segment Segment for which to fetch positions (CASH, FNO, COMMODITY)
+   * @return PositionsResponse containing list of current positions for the specified segment
+   * @throws JsonProcessingException If response parsing fails
+   */
+  public PositionsResponse fetchUserPositions(Segment segment){
+    log.info("Fetching user positions for segment: {}", segment);
+    try {
+      Map<String,String> params = null==segment?null:Map.of("segment", segment.name());
+      ResponseEntity<String> response = restUtils.restGetCall(constants.getBaseUrl() + constants.getPositionsUrl(),
+          generateHeaders(), params);
+      if (response.getStatusCode().is2xxSuccessful()) {
+        return mapper.readValue(response.getBody(), PositionsResponse.class);
+      } else {
+        log.warn("Unable to fetch user positions. Status Code: {}, Response Body: {}",
+            response.getStatusCode(), response.getBody());
+      }
+    } catch (JsonProcessingException e) {
+      log.error("Error parsing user positions response: {}", e.getMessage());
+    }
+    return null;
+  }
+
+  /**
+   * Fetch current positions from Groww API for a given segment and trading symbol
+   * @param segment Segment for which to fetch positions (CASH, FNO, COMMODITY)
+   * @param tradingSymbol Trading symbol for which to fetch positions
+   * @return PositionsResponse containing list of current positions for the specified segment and trading symbol
+   * @throws JsonProcessingException If response parsing fails
+   */
+  public PositionsResponse fetchPositionTradingSymbol(Segment segment, String tradingSymbol){
+    log.info("Fetching user positions for segment: {} and tradingSymbol: {}", segment, tradingSymbol);
+    try {
+      Map<String,String> params = Map.of(
+          "segment", segment.name(),
+          "trading_symbol", tradingSymbol
+      );
+      ResponseEntity<String> response = restUtils.restGetCall(constants.getBaseUrl() + constants.getPositionsUrl(),
+          generateHeaders(), params);
+      if (response.getStatusCode().is2xxSuccessful()) {
+        return mapper.readValue(response.getBody(), PositionsResponse.class);
+      } else {
+        log.warn("Unable to fetch positions for trading symbol. Status Code: {}, Response Body: {}",
+            response.getStatusCode(), response.getBody());
+      }
+    } catch (JsonProcessingException e) {
+      log.error("Error parsing positions for trading symbols response: {}", e.getMessage());
+    }
+    return null;
   }
 
   /**

@@ -1,9 +1,12 @@
 package com.navneet.trade.service;
 
+import com.navneet.trade.constants.Segment;
 import com.navneet.trade.entity.dto.InstrumentsDto;
 import com.navneet.trade.models.EntityRequest;
 import com.navneet.trade.models.HistoricDataRequest;
 import com.navneet.trade.models.HistoricDataResponse;
+import com.navneet.trade.models.HoldingsResponse;
+import com.navneet.trade.models.PositionsResponse;
 import com.navneet.trade.models.TokenResponse;
 import java.util.List;
 
@@ -43,4 +46,28 @@ public interface GrowwService {
    * @return A list of EntityResponse objects matching the request criteria.
    */
   List<InstrumentsDto> fetchEntities(EntityRequest request);
+
+  /**
+   * Fetches the current holdings from Groww.
+   *
+   * @return A HoldingsResponse containing the current holdings data.
+   */
+  HoldingsResponse fetchHoldings();
+
+  /**
+   * Fetches the current positions for a given segment from Groww.
+   *
+   * @param segment The segment for which to fetch positions (e.g., EQUITY, DERIVATIVES).
+   * @return A PositionsResponse containing the current positions data for the specified segment.
+   */
+  PositionsResponse fetchUserPositions(Segment segment);
+
+  /**
+   * Fetches the position for a specific trading symbol within a given segment from Groww.
+   *
+   * @param segment The segment for which to fetch the position (e.g., EQUITY, DERIVATIVES).
+   * @param tradingSymbol The trading symbol for which to fetch the position.
+   * @return A PositionsResponse containing the position data for the specified trading symbol.
+   */
+  PositionsResponse fetchPositionTradingSymbol(Segment segment, String tradingSymbol);
 }

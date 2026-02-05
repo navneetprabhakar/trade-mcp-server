@@ -17,5 +17,8 @@ public class GrowwConstants {
   private String secret;
   private String tokenUrl;
   private String historicDataUrl;
+  private String holdingsUrl;
+  private String positionsUrl;
+  private String positionsTradingUrl;
 
 }

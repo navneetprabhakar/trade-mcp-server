@@ -1,9 +1,12 @@
 package com.navneet.trade.controller;
 
+import com.navneet.trade.constants.Segment;
 import com.navneet.trade.entity.dto.InstrumentsDto;
 import com.navneet.trade.models.EntityRequest;
 import com.navneet.trade.models.HistoricDataRequest;
 import com.navneet.trade.models.HistoricDataResponse;
+import com.navneet.trade.models.HoldingsResponse;
+import com.navneet.trade.models.PositionsResponse;
 import com.navneet.trade.models.TokenResponse;
 import com.navneet.trade.service.GrowwService;
 import java.util.List;
@@ -44,5 +47,21 @@ public class GrowwController {
   @PostMapping("/fetch-historic-data")
   public HistoricDataResponse fetchHistoricData(@RequestBody HistoricDataRequest request) {
     return service.getHistoricData(request);
+  }
+
+  @GetMapping("/fetch-holdings")
+  public HoldingsResponse fetchHoldings() {
+    return service.fetchHoldings();
+  }
+
+  @GetMapping("/fetch-positions")
+  public PositionsResponse fetchPositions(@RequestParam(name = "segment") Segment segment) {
+    return service.fetchUserPositions(segment);
+  }
+
+  @GetMapping("/fetch-stock-positions")
+  public PositionsResponse fetchStockPositions(@RequestParam(name = "segment") Segment segment,
+      @RequestParam(name = "trading_symbol")String tradingSymbol) {
+    return service.fetchPositionTradingSymbol(segment, tradingSymbol);
   }
 }
