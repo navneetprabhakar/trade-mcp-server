@@ -10,10 +10,12 @@ A Spring Boot-based Model Context Protocol (MCP) server for stock trading operat
 - **CSV Data Ingestion**: Bulk import instruments data from CSV files with batch processing
 - **Token Management**: Automated token generation and caching for Groww API
 - **Historic Data Retrieval**: Fetch candlestick data for technical analysis
+- **Holdings Management**: Fetch and monitor user holdings with detailed position information
+- **Positions Tracking**: Real-time position tracking by segment and trading symbol
 - **PostgreSQL Database**: Persistent storage with JPA/Hibernate
 - **Caching**: Caffeine cache implementation for improved performance
 
-> **Note**: More API integrations (order placement, portfolio management, real-time quotes, etc.) are planned and will be updated in future releases.
+> **Note**: More API integrations (order placement, order management, real-time quotes, etc.) are planned and will be updated in future releases.
 
 ## 📋 Prerequisites
 
@@ -202,6 +204,113 @@ Fetches historical candlestick data for an instrument.
 }
 ```
 
+### 5. Fetch Holdings
+```http
+GET /v1/groww/fetch-holdings
+```
+
+Fetches all holdings from the user's portfolio.
+
+**Response:**
+```json
+{
+  "status": "success",
+  "payload": {
+    "holdings": [
+      {
+        "isin": "INE002A01018",
+        "tradingSymbol": "RELIANCE",
+        "quantity": 50,
+        "averagePrice": 2450.50,
+        "pledgeQuantity": 0,
+        "dematLockedQuantity": 0,
+        "growwLockedQuantity": 0.0,
+        "repledgeQuantity": 0.0,
+        "t1Quantity": 0,
+        "dematFreeQuantity": 50,
+        "corporateActionAdditionalQuantity": 0,
+        "activeDematTransferQuantity": 0
+      }
+    ]
+  }
+}
+```
+
+### 6. Fetch Positions
+```http
+GET /v1/groww/fetch-positions?segment=CASH
+```
+
+Fetches all open positions for a specific segment.
+
+**Parameters:**
+- `segment`: Trading segment (CASH, FNO, COMMODITY)
+
+**Response:**
+```json
+{
+  "status": "success",
+  "payload": {
+    "positions": [
+      {
+        "tradingSymbol": "TCS",
+        "creditQuantity": 10,
+        "creditPrice": 3500.50,
+        "debitQuantity": 0,
+        "debitPrice": 0.0,
+        "carryForwardCreditQuantity": 0,
+        "carryForwardCreditPrice": 0.0,
+        "carryForwardDebitQuantity": 0,
+        "carryForwardDebitPrice": 0.0,
+        "exchange": "NSE",
+        "symbolIsin": "INE467B01029",
+        "quantity": 10,
+        "product": "INTRADAY",
+        "netCarryForwardQuantity": 0,
+        "netPrice": 3500.50,
+        "netCarryForwardPrice": 0.0,
+        "realisedPnl": 0.0
+      }
+    ]
+  }
+}
+```
+
+### 7. Fetch Stock Positions
+```http
+GET /v1/groww/fetch-stock-positions?segment=CASH&trading_symbol=TCS
+```
+
+Fetches position for a specific trading symbol within a segment.
+
+**Parameters:**
+- `segment`: Trading segment (CASH, FNO, COMMODITY)
+- `trading_symbol`: The trading symbol (e.g., TCS, RELIANCE)
+
+**Response:**
+```json
+{
+  "status": "success",
+  "payload": {
+    "positions": [
+      {
+        "tradingSymbol": "TCS",
+        "creditQuantity": 10,
+        "creditPrice": 3500.50,
+        "debitQuantity": 0,
+        "debitPrice": 0.0,
+        "exchange": "NSE",
+        "symbolIsin": "INE467B01029",
+        "quantity": 10,
+        "product": "INTRADAY",
+        "netPrice": 3500.50,
+        "realisedPnl": 0.0
+      }
+    ]
+  }
+}
+```
+
 ## 📊 Domain Models
 
 ### Instruments Entity
@@ -212,6 +321,19 @@ Represents financial instruments with fields:
 - Derivatives: `underlyingSymbol`, `expiryDate`, `strikePrice`
 - Trading Parameters: `lotSize`, `tickSize`, `freezeQuantity`
 - Permissions: `buyAllowed`, `sellAllowed`, `isIntraday`
+
+### Holdings Response
+Represents user holdings with detailed information:
+- **Holding**: `isin`, `tradingSymbol`, `quantity`, `averagePrice`
+- **Lock Details**: `pledgeQuantity`, `dematLockedQuantity`, `growwLockedQuantity`, `repledgeQuantity`
+- **Quantity Types**: `t1Quantity`, `dematFreeQuantity`, `corporateActionAdditionalQuantity`, `activeDematTransferQuantity`
+
+### Positions Response
+Represents user positions with comprehensive position tracking:
+- **Position Details**: `tradingSymbol`, `exchange`, `symbolIsin`, `product`
+- **Credit Info**: `creditQuantity`, `creditPrice`, `carryForwardCreditQuantity`, `carryForwardCreditPrice`
+- **Debit Info**: `debitQuantity`, `debitPrice`, `carryForwardDebitQuantity`, `carryForwardDebitPrice`
+- **Net Values**: `quantity`, `netPrice`, `netCarryForwardQuantity`, `netCarryForwardPrice`, `realisedPnl`
 
 ### Enums
 - **Exchange**: NSE, BSE, MCX
@@ -239,9 +361,10 @@ com.navneet.trade/
 │       └── InstrumentsRepo.java
 ├── models/                  # Request/Response models
 │   ├── EntityRequest.java
-│   ├── EntityResponse.java
 │   ├── HistoricDataRequest.java
 │   ├── HistoricDataResponse.java
+│   ├── HoldingsResponse.java
+│   ├── PositionsResponse.java
 │   ├── TokenRequest.java
 │   └── TokenResponse.java
 ├── service/                 # Business logic
