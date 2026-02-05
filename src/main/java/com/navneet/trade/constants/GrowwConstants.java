@@ -16,5 +16,6 @@ public class GrowwConstants {
   private String apiKey;
   private String secret;
   private String tokenUrl;
+  private String historicDataUrl;
 
 }
