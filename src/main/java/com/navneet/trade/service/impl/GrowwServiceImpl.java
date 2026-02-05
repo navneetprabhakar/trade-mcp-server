@@ -12,6 +12,8 @@ import com.navneet.trade.service.helper.GrowwServiceHelper;
 import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -43,8 +45,9 @@ public class GrowwServiceImpl implements GrowwService {
     return null;
   }
 
+  @McpTool(name = "Fetch Historic Data", description = "Retrieves historical candlestick data (OHLCV - Open, High, Low, Close, Volume) for a specific financial instrument from Groww API. Supports multiple time intervals (1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M) and date ranges for technical analysis and charting purposes.")
   @Override
-  public HistoricDataResponse getHistoricData(HistoricDataRequest request) {
+  public HistoricDataResponse getHistoricData(@McpToolParam(description = "Request containing symbol, exchange, interval, from and to dates for fetching historical candlestick data") HistoricDataRequest request) {
     try {
       return helper.fetchHistoricData(request);
     } catch (JsonProcessingException e) {
@@ -62,8 +65,9 @@ public class GrowwServiceImpl implements GrowwService {
     }
   }
 
+  @McpTool(name="Fetch Entities", description="Searches and retrieves financial instruments (stocks, derivatives, commodities) from the database based on partial name matching, exchange (NSE, BSE, MCX), and segment (CASH, FNO, COMMODITY). Returns detailed instrument information including trading symbols, lot sizes, tick sizes, and trading permissions.")
   @Override
-  public List<InstrumentsDto> fetchEntities(EntityRequest request) {
+  public List<InstrumentsDto> fetchEntities(@McpToolParam(description = "Request containing name of stock, exchange, and segment (CASH, FNO) for searching instruments with similar names") EntityRequest request) {
     List<Instruments> entities= helper.fetchInstruments(request);
     if(!CollectionUtils.isEmpty(entities)){
       return entities.stream().map(InstrumentsDto::fromEntity).toList();
