@@ -1,11 +1,14 @@
 package com.navneet.trade.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.navneet.trade.constants.Segment;
 import com.navneet.trade.entity.Instruments;
 import com.navneet.trade.entity.dto.InstrumentsDto;
 import com.navneet.trade.models.EntityRequest;
 import com.navneet.trade.models.HistoricDataRequest;
 import com.navneet.trade.models.HistoricDataResponse;
+import com.navneet.trade.models.HoldingsResponse;
+import com.navneet.trade.models.PositionsResponse;
 import com.navneet.trade.models.TokenResponse;
 import com.navneet.trade.service.GrowwService;
 import com.navneet.trade.service.helper.GrowwServiceHelper;
@@ -45,9 +48,14 @@ public class GrowwServiceImpl implements GrowwService {
     return null;
   }
 
-  @McpTool(name = "Fetch Historic Data", description = "Retrieves historical candlestick data (OHLCV - Open, High, Low, Close, Volume) for a specific financial instrument from Groww API. Supports multiple time intervals (1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M) and date ranges for technical analysis and charting purposes.")
+  @McpTool(name = "Fetch Historic Data",
+      description = "Retrieves historical candlestick data (OHLCV - Open, High, Low, Close, Volume) for a "
+          + "specific financial instrument from Groww API. "
+          + "Supports multiple time intervals (1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M) and date ranges for "
+          + "technical analysis and charting purposes.")
   @Override
-  public HistoricDataResponse getHistoricData(@McpToolParam(description = "Request containing symbol, exchange, interval, from and to dates for fetching historical candlestick data") HistoricDataRequest request) {
+  public HistoricDataResponse getHistoricData(@McpToolParam(description = "Request containing symbol, "
+      + "exchange, interval, from and to dates for fetching historical candlestick data") HistoricDataRequest request) {
     try {
       return helper.fetchHistoricData(request);
     } catch (JsonProcessingException e) {
@@ -65,9 +73,14 @@ public class GrowwServiceImpl implements GrowwService {
     }
   }
 
-  @McpTool(name="Fetch Entities", description="Searches and retrieves financial instruments (stocks, derivatives, commodities) from the database based on partial name matching, exchange (NSE, BSE, MCX), and segment (CASH, FNO, COMMODITY). Returns detailed instrument information including trading symbols, lot sizes, tick sizes, and trading permissions.")
+  @McpTool(name="Fetch Entities",
+      description="Searches and retrieves financial instruments (stocks, derivatives, commodities) from the "
+          + "database based on partial name matching, exchange (NSE, BSE, MCX), "
+          + "and segment (CASH, FNO, COMMODITY). Returns detailed instrument information including"
+          + " trading symbols, lot sizes, tick sizes, and trading permissions.")
   @Override
-  public List<InstrumentsDto> fetchEntities(@McpToolParam(description = "Request containing name of stock, exchange, and segment (CASH, FNO) for searching instruments with similar names") EntityRequest request) {
+  public List<InstrumentsDto> fetchEntities(@McpToolParam(description = "Request containing name of "
+      + "stock, exchange, and segment (CASH, FNO) for searching instruments with similar names") EntityRequest request) {
     List<Instruments> entities= helper.fetchInstruments(request);
     if(!CollectionUtils.isEmpty(entities)){
       return entities.stream().map(InstrumentsDto::fromEntity).toList();
@@ -75,5 +88,39 @@ public class GrowwServiceImpl implements GrowwService {
       log.info("No entities found matching the request criteria: {}", request);
       return List.of();
     }
+  }
+
+  @McpTool(name="Fetch Holdings",
+      description="Retrieves the current holdings of financial instruments (stocks, derivatives, commodities) "
+          + "from the user's Groww account. Provides detailed information on each holding "
+          + "including quantity, average price, current market value, profit/loss, and other relevant metrics.")
+  @Override
+  public HoldingsResponse fetchHoldings() {
+    try{
+      return helper.fetchHoldings();
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @McpTool(name = "Fetch User Positions",
+      description = "Retrieves the current open positions of financial instruments (stocks, derivatives, commodities) "
+          + "from the user's Groww account for a specified market segment (CASH, FNO, COMMODITY). "
+          + "Provides detailed information on each position including quantity, average price, "
+          + "current market value, profit/loss, and other relevant metrics.")
+  @Override
+  public PositionsResponse fetchUserPositions(@McpToolParam(description = "Market segment (CASH, FNO, COMMODITY)") Segment segment) {
+    return helper.fetchUserPositions(segment);
+  }
+
+  @McpTool(name = "Fetch Position by Trading Symbol",
+      description = "Retrieves the current open position of a specific financial instrument "
+          + "(stock, derivative, commodity) from the user's Groww account based on the provided trading symbol "
+          + "and market segment (CASH, FNO, COMMODITY). Provides detailed information on the position "
+          + "including quantity, average price, current market value, profit/loss, and other relevant metrics.")
+  @Override
+  public PositionsResponse fetchPositionTradingSymbol(@McpToolParam(description = "Market segment (CASH, FNO, COMMODITY)")Segment segment,
+      @McpToolParam(description = "Stock trading symbol") String tradingSymbol) {
+    return helper.fetchPositionTradingSymbol(segment, tradingSymbol);
   }
 }
