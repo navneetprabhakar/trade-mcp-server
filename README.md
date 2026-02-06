@@ -13,10 +13,12 @@ A Spring Boot-based Model Context Protocol (MCP) server for stock trading operat
 - **Holdings Management**: Fetch and monitor user holdings with detailed position information
 - **Positions Tracking**: Real-time position tracking by segment and trading symbol
 - **Order Placement**: Place buy/sell orders with support for multiple order types (Market, Limit, SL, SL-M)
+- **Order Management**: Modify, cancel, and track orders with real-time status updates
+- **Trade Execution**: Fetch executed trades and detailed trade information
+- **Order History**: Retrieve comprehensive order list and order details
 - **PostgreSQL Database**: Persistent storage with JPA/Hibernate
 - **Caching**: Caffeine cache implementation for improved performance
-
-> **Note**: More API integrations (order management, order modification, real-time quotes, etc.) are planned and will be updated in future releases.
+- **Code Optimization**: Refactored order service with centralized API handler (OrderApiHelper)
 
 ## 📋 Prerequisites
 
@@ -350,6 +352,221 @@ Place a new buy or sell order with various order types.
 }
 ```
 
+### 9. Modify Order
+```http
+POST /v1/orders/modify
+Content-Type: application/json
+```
+
+Modifies an existing order's price and/or quantity.
+
+**Request Body:**
+```json
+{
+  "groww_order_id": "GMK39038RDT490CCVRO",
+  "price": 2550,
+  "quantity": 150,
+  "validity": "DAY"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "SUCCESS",
+  "payload": {
+    "groww_order_id": "GMK39038RDT490CCVRO",
+    "order_status": "OPEN",
+    "remark": "Order modified successfully"
+  }
+}
+```
+
+### 10. Cancel Order
+```http
+POST /v1/orders/cancel
+Content-Type: application/json
+```
+
+Cancels an existing open order.
+
+**Request Body:**
+```json
+{
+  "groww_order_id": "GMK39038RDT490CCVRO"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "SUCCESS",
+  "payload": {
+    "groww_order_id": "GMK39038RDT490CCVRO",
+    "order_status": "CANCELLED",
+    "remark": "Order cancelled successfully"
+  }
+}
+```
+
+### 11. Fetch Order Status
+```http
+GET /v1/orders/status/{groww_order_id}?segment=CASH
+```
+
+Fetches the current status of a specific order.
+
+**Parameters:**
+- `segment`: Trading segment (CASH, FNO, COMMODITY)
+
+**Response:**
+```json
+{
+  "status": "SUCCESS",
+  "payload": {
+    "groww_order_id": "GMK39038RDT490CCVRO",
+    "order_status": "OPEN",
+    "remark": "Order placed successfully",
+    "filled_quantity": 100,
+    "order_reference_id": "Ab-654321234-1628190"
+  }
+}
+```
+
+### 12. Fetch Trades for Order
+```http
+GET /v1/orders/trades/{order_id}?segment=CASH&page=0&page_size=10
+```
+
+Fetches all trades associated with a specific order.
+
+**Parameters:**
+- `segment`: Trading segment (CASH, FNO, COMMODITY)
+- `page`: Page number for pagination (default: 0)
+- `page_size`: Number of records per page (default: 10)
+
+**Response:**
+```json
+{
+  "status": "SUCCESS",
+  "payload": {
+    "trade_list": [
+      {
+        "price": 2500,
+        "isin": "ISN378331005",
+        "quantity": 100,
+        "groww_order_id": "GROW123456",
+        "groww_trade_id": "TRADE123456",
+        "exchange_trade_id": "EXCH123456",
+        "exchange_order_id": "EXORD123456",
+        "trade_status": "COMPLETED",
+        "trading_symbol": "AAPL",
+        "remark": "Trade executed successfully",
+        "exchange": "NSE",
+        "segment": "CASH",
+        "product": "CNC",
+        "transaction_type": "BUY",
+        "created_at": "2024-08-24T14:15:22Z",
+        "trade_date_time": "2024-08-24T14:15:22Z",
+        "settlement_number": "SETTLE123456"
+      }
+    ]
+  }
+}
+```
+
+### 13. Fetch Order List
+```http
+GET /v1/orders/list?segment=CASH&page=0&page_size=100
+```
+
+Fetches the list of orders for a specific segment.
+
+**Parameters:**
+- `segment`: Trading segment (CASH, FNO, COMMODITY)
+- `page`: Page number for pagination (default: 0)
+- `page_size`: Number of records per page (default: 100)
+
+**Response:**
+```json
+{
+  "status": "SUCCESS",
+  "payload": {
+    "order_list": [
+      {
+        "groww_order_id": "GMK39038RDT490CCVRO",
+        "trading_symbol": "WIPRO",
+        "order_status": "OPEN",
+        "remark": "Order placed successfully",
+        "quantity": 100,
+        "price": 2500,
+        "trigger_price": 2450,
+        "filled_quantity": 100,
+        "remaining_quantity": 10,
+        "average_fill_price": 2500,
+        "deliverable_quantity": 10,
+        "amo_status": "PENDING",
+        "validity": "DAY",
+        "exchange": "NSE",
+        "order_type": "MARKET",
+        "transaction_type": "BUY",
+        "segment": "CASH",
+        "product": "CNC",
+        "created_at": "2023-10-01T10:15:30",
+        "exchange_time": "2023-10-01T10:15:30",
+        "trade_date": "2019-08-24T14:15:22Z",
+        "order_reference_id": "Ab-654321234-1628190"
+      }
+    ]
+  }
+}
+```
+
+### 14. Fetch Order Details
+```http
+GET /v1/orders/details/{groww_order_id}?segment=CASH
+```
+
+Fetches detailed information for a specific order.
+
+**Parameters:**
+- `segment`: Trading segment (CASH, FNO, COMMODITY)
+
+**Response:**
+```json
+{
+  "status": "SUCCESS",
+  "payload": {
+    "order_list": [
+      {
+        "groww_order_id": "GMK39038RDT490CCVRO",
+        "trading_symbol": "WIPRO",
+        "order_status": "OPEN",
+        "remark": "Order placed successfully",
+        "quantity": 100,
+        "price": 2500,
+        "trigger_price": 2450,
+        "filled_quantity": 100,
+        "remaining_quantity": 10,
+        "average_fill_price": 2500,
+        "deliverable_quantity": 10,
+        "amo_status": "PENDING",
+        "validity": "DAY",
+        "exchange": "NSE",
+        "order_type": "MARKET",
+        "transaction_type": "BUY",
+        "segment": "CASH",
+        "product": "CNC",
+        "created_at": "2023-10-01T10:15:30",
+        "exchange_time": "2023-10-01T10:15:30",
+        "trade_date": "2019-08-24T14:15:22Z",
+        "order_reference_id": "Ab-654321234-1628190"
+      }
+    ]
+  }
+}
+```
+
 ## 📊 Domain Models
 
 ### Instruments Entity
@@ -391,6 +608,52 @@ Represents order placement response with order status:
   - `orderReferenceId`: Client-provided order reference
   - `remark`: Additional information about the order
 
+### Modify Order Response
+Represents order modification/cancellation response:
+- **Status**: `status` (SUCCESS, FAILED)
+- **Payload**:
+  - `growwOrderId`: Unique order ID from Groww
+  - `orderStatus`: Updated order status
+  - `remark`: Modification confirmation message
+
+### Order Status Response
+Represents current order status with execution details:
+- **Status**: `status` (SUCCESS, FAILED)
+- **Payload**:
+  - `growwOrderId`: Unique order ID from Groww
+  - `orderStatus`: Current order status
+  - `filledQuantity`: Quantity executed so far
+  - `orderReferenceId`: Client-provided order reference
+  - `remark`: Status message
+
+### Order Trades Response
+Represents list of trades executed for an order:
+- **Status**: `status` (SUCCESS, FAILED)
+- **Payload**:
+  - `tradeList`: Array of executed trades containing:
+    - **Trade Details**: `price`, `quantity`, `isin`, `tradingSymbol`
+    - **Order References**: `growwOrderId`, `exchangeOrderId`, `orderReferenceId`
+    - **Trade References**: `growwTradeId`, `exchangeTradeId`, `settlementNumber`
+    - **Status & Type**: `tradeStatus`, `transactionType` (BUY, SELL)
+    - **Market Info**: `exchange`, `segment`, `product`
+    - **Timestamps**: `createdAt`, `tradeDatetime`
+    - **Metadata**: `remark`
+
+### Order List Response
+Represents list of orders for a segment:
+- **Status**: `status` (SUCCESS, FAILED)
+- **Payload**:
+  - `orderList`: Array of orders containing:
+    - **Order Identification**: `growwOrderId`, `tradingSymbol`, `orderReferenceId`
+    - **Order Status**: `orderStatus`, `amoStatus`
+    - **Order Parameters**: `quantity`, `price`, `triggerPrice`, `validity`
+    - **Execution Details**: `filledQuantity`, `remainingQuantity`, `averageFillPrice`
+    - **Position Info**: `deliverableQuantity`
+    - **Order Type**: `orderType` (MARKET, LIMIT, SL, SL-M), `transactionType` (BUY, SELL)
+    - **Market Info**: `exchange`, `segment`, `product`
+    - **Timestamps**: `createdAt`, `exchangeTime`, `tradeDate`
+    - **Metadata**: `remark`
+
 ### Enums
 - **Exchange**: NSE, BSE, MCX
 - **Segment**: CASH, FNO, COMMODITY
@@ -429,13 +692,22 @@ com.navneet.trade/
 │   │   ├── EntityRequest.java
 │   │   ├── HistoricDataRequest.java
 │   │   ├── TokenRequest.java
-│   │   └── CreateOrderRequest.java
+│   │   ├── CreateOrderRequest.java
+│   │   ├── ModifyOrderRequest.java
+│   │   ├── CancelOrderRequest.java
+│   │   ├── OrderStatusRequest.java
+│   │   ├── OrderTradesRequest.java
+│   │   └── OrderListRequest.java
 │   └── response/
 │       ├── TokenResponse.java
 │       ├── HistoricDataResponse.java
 │       ├── HoldingsResponse.java
 │       ├── PositionsResponse.java
-│       └── CreateOrderResponse.java
+│       ├── CreateOrderResponse.java
+│       ├── ModifyOrderResponse.java
+│       ├── OrderStatusResponse.java
+│       ├── OrderTradesResponse.java
+│       └── OrderListResponse.java
 ├── service/                 # Business logic
 │   ├── GrowwService.java
 │   ├── OrderService.java
@@ -443,7 +715,8 @@ com.navneet.trade/
 │   │   ├── GrowwServiceImpl.java
 │   │   └── OrderServiceImpl.java
 │   └── helper/
-│       └── GrowwServiceHelper.java
+│       ├── GrowwServiceHelper.java
+│       └── OrderApiHelper.java
 └── utils/                   # Utility classes
     ├── GrowwUtils.java
     └── RestUtils.java
@@ -458,6 +731,14 @@ The system uses an iterator pattern for memory-efficient CSV processing:
 // Builds batches of configurable size (e.g., 1000 records)
 // Uses instrumentsRepo.saveAll() for batch insertion
 ```
+
+### Code Optimization: OrderApiHelper
+Reduced code duplication in order management operations:
+- **Centralized API Handling**: OrderApiHelper consolidates all REST API call logic (POST and GET)
+- **Generic Methods**: `executePostCall()` and `executeGetCall()` handle all API interactions
+- **Response Handling**: Unified JSON deserialization and error handling
+- **Result**: 50% reduction in OrderServiceImpl code (192 → 96 lines)
+- **Benefit**: Bug fixes and enhancements in API communication now happen in one place
 
 ### Caching Strategy
 - Token caching with configurable expiry
