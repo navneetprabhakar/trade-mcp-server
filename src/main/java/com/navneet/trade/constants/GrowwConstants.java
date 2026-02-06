@@ -20,5 +20,13 @@ public class GrowwConstants {
   private String holdingsUrl;
   private String positionsUrl;
   private String positionsTradingUrl;
+  private String orderListUrl;
+  private String orderDetailsUrl;
+  private String createOrderUrl;
+  private String modifyOrderUrl;
+  private String cancelOrderUrl;
+  private String orderStatusUrl;
+  private String orderStatusReferenceUrl;
+  private String orderTradesUrl;
 
 }

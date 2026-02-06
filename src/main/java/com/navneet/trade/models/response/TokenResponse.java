@@ -1,4 +1,4 @@
-package com.navneet.trade.models;
+package com.navneet.trade.models.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;

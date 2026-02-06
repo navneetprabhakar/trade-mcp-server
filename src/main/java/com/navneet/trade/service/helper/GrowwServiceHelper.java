@@ -6,13 +6,13 @@ import com.navneet.trade.constants.GrowwConstants;
 import com.navneet.trade.constants.Segment;
 import com.navneet.trade.entity.Instruments;
 import com.navneet.trade.entity.repo.InstrumentsRepo;
-import com.navneet.trade.models.EntityRequest;
-import com.navneet.trade.models.HistoricDataRequest;
-import com.navneet.trade.models.HistoricDataResponse;
-import com.navneet.trade.models.HoldingsResponse;
-import com.navneet.trade.models.PositionsResponse;
-import com.navneet.trade.models.TokenRequest;
-import com.navneet.trade.models.TokenResponse;
+import com.navneet.trade.models.request.EntityRequest;
+import com.navneet.trade.models.request.HistoricDataRequest;
+import com.navneet.trade.models.response.HistoricDataResponse;
+import com.navneet.trade.models.response.HoldingsResponse;
+import com.navneet.trade.models.response.PositionsResponse;
+import com.navneet.trade.models.request.TokenRequest;
+import com.navneet.trade.models.response.TokenResponse;
 import com.navneet.trade.utils.GrowwUtils;
 import com.navneet.trade.utils.RestUtils;
 import java.io.BufferedReader;
@@ -252,7 +252,7 @@ public class GrowwServiceHelper {
    * @return Map of headers for API calls
    * @throws JsonProcessingException If token retrieval fails
    */
-  private Map<String, String> generateHeaders() throws JsonProcessingException {
+  public Map<String, String> generateHeaders() throws JsonProcessingException {
     TokenResponse token= getTokenFromCache();
     if(token==null){
       token=generateToken();

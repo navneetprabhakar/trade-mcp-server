@@ -1,7 +1,7 @@
 package com.navneet.trade.utils;
 
 import com.navneet.trade.constants.GrowwConstants;
-import com.navneet.trade.models.TokenRequest;
+import com.navneet.trade.models.request.TokenRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

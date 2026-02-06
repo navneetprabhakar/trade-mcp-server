@@ -1,4 +1,4 @@
-package com.navneet.trade.models;
+package com.navneet.trade.models.request;
 
 import com.navneet.trade.constants.Exchange;
 import com.navneet.trade.constants.Segment;

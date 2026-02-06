@@ -31,6 +31,14 @@ groww:
   holdings-url: holdings/user
   positions-url: positions/user
   positions-trading-url: positions/trading-symbol
+  order-list-url: order/list
+  create-order-url: order/create
+  order-details-url: order/details/
+  modify-order-url: order/modify
+  cancel-order-url: order/cancel
+  order-status-url: order/status/
+  order-status-reference-url: order/status/reference/
+  order-trades-url: order/trades/
 
 server:
   port: 8082

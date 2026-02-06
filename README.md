@@ -12,10 +12,11 @@ A Spring Boot-based Model Context Protocol (MCP) server for stock trading operat
 - **Historic Data Retrieval**: Fetch candlestick data for technical analysis
 - **Holdings Management**: Fetch and monitor user holdings with detailed position information
 - **Positions Tracking**: Real-time position tracking by segment and trading symbol
+- **Order Placement**: Place buy/sell orders with support for multiple order types (Market, Limit, SL, SL-M)
 - **PostgreSQL Database**: Persistent storage with JPA/Hibernate
 - **Caching**: Caffeine cache implementation for improved performance
 
-> **Note**: More API integrations (order placement, order management, real-time quotes, etc.) are planned and will be updated in future releases.
+> **Note**: More API integrations (order management, order modification, real-time quotes, etc.) are planned and will be updated in future releases.
 
 ## 📋 Prerequisites
 
@@ -311,6 +312,44 @@ Fetches position for a specific trading symbol within a segment.
 }
 ```
 
+### 8. Create Order
+```http
+POST /v1/orders/create
+Content-Type: application/json
+```
+
+Place a new buy or sell order with various order types.
+
+**Request Body:**
+```json
+{
+  "trading_symbol": "WIPRO",
+  "quantity": 100,
+  "price": 2500,
+  "trigger_price": 2450,
+  "validity": "DAY",
+  "exchange": "NSE",
+  "segment": "CASH",
+  "product": "CNC",
+  "order_type": "SL",
+  "transaction_type": "BUY",
+  "order_reference_id": "Ab-654321234-1628190"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "SUCCESS",
+  "payload": {
+    "groww_order_id": "GMK39038RDT490CCVRO",
+    "order_status": "OPEN",
+    "order_reference_id": "Ab-654321234-1628190",
+    "remark": "Order placed successfully"
+  }
+}
+```
+
 ## 📊 Domain Models
 
 ### Instruments Entity
@@ -335,10 +374,31 @@ Represents user positions with comprehensive position tracking:
 - **Debit Info**: `debitQuantity`, `debitPrice`, `carryForwardDebitQuantity`, `carryForwardDebitPrice`
 - **Net Values**: `quantity`, `netPrice`, `netCarryForwardQuantity`, `netCarryForwardPrice`, `realisedPnl`
 
+### Create Order Request
+Represents order placement request with trading parameters:
+- **Instrument Details**: `tradingSymbol`, `exchange`, `segment`
+- **Order Parameters**: `quantity`, `price`, `triggerPrice`, `validity`
+- **Order Type**: `orderType` (MARKET, LIMIT, SL, SL-M), `transactionType` (BUY, SELL)
+- **Product Type**: `product` (CNC, INTRADAY, MTF)
+- **Reference**: `orderReferenceId` (unique order reference)
+
+### Create Order Response
+Represents order placement response with order status:
+- **Status**: `status` (SUCCESS, FAILED)
+- **Payload**: 
+  - `growwOrderId`: Unique order ID from Groww
+  - `orderStatus`: Current order status (OPEN, PENDING, EXECUTED, CANCELLED, REJECTED)
+  - `orderReferenceId`: Client-provided order reference
+  - `remark`: Additional information about the order
+
 ### Enums
 - **Exchange**: NSE, BSE, MCX
 - **Segment**: CASH, FNO, COMMODITY
 - **CandleIntervals**: 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M
+- **OrderType**: MARKET, LIMIT, SL (Stop Loss), SL-M (Stop Loss Market)
+- **OrderStatus**: OPEN, PENDING, EXECUTED, CANCELLED, REJECTED
+- **ProductType**: CNC (Cash & Carry), INTRADAY, MTF (Margin Trading Facility)
+- **TransactionType**: BUY, SELL
 
 ## 🏗️ Architecture
 
@@ -350,9 +410,14 @@ com.navneet.trade/
 │   ├── CandleIntervals.java
 │   ├── Exchange.java
 │   ├── Segment.java
+│   ├── OrderType.java
+│   ├── OrderStatus.java
+│   ├── ProductType.java
+│   ├── TransactionType.java
 │   └── GrowwConstants.java
 ├── controller/              # REST controllers
-│   └── GrowwController.java
+│   ├── GrowwController.java
+│   └── OrderController.java
 ├── entity/                  # JPA entities
 │   ├── Instruments.java
 │   ├── dto/
@@ -360,17 +425,23 @@ com.navneet.trade/
 │   └── repo/
 │       └── InstrumentsRepo.java
 ├── models/                  # Request/Response models
-│   ├── EntityRequest.java
-│   ├── HistoricDataRequest.java
-│   ├── HistoricDataResponse.java
-│   ├── HoldingsResponse.java
-│   ├── PositionsResponse.java
-│   ├── TokenRequest.java
-│   └── TokenResponse.java
+│   ├── request/
+│   │   ├── EntityRequest.java
+│   │   ├── HistoricDataRequest.java
+│   │   ├── TokenRequest.java
+│   │   └── CreateOrderRequest.java
+│   └── response/
+│       ├── TokenResponse.java
+│       ├── HistoricDataResponse.java
+│       ├── HoldingsResponse.java
+│       ├── PositionsResponse.java
+│       └── CreateOrderResponse.java
 ├── service/                 # Business logic
 │   ├── GrowwService.java
+│   ├── OrderService.java
 │   ├── impl/
-│   │   └── GrowwServiceImpl.java
+│   │   ├── GrowwServiceImpl.java
+│   │   └── OrderServiceImpl.java
 │   └── helper/
 │       └── GrowwServiceHelper.java
 └── utils/                   # Utility classes

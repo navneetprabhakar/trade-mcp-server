@@ -1,4 +1,4 @@
-package com.navneet.trade.models;
+package com.navneet.trade.models.request;
 
 import lombok.Builder;
 import lombok.Data;

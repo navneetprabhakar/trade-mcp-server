@@ -1,4 +1,4 @@
-package com.navneet.trade.models;
+package com.navneet.trade.models.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.navneet.trade.constants.CandleIntervals;

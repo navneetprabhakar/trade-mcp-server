@@ -79,8 +79,7 @@ public class RestUtils {
   public ResponseEntity<String> restPostCall(
       String url, Map<String, String> headers, Map<String, String> params, Object body) {
     log.info(
-        "POST API Request received for url: {}, headers: {}, params: {}", url, headers, params);
-
+        "POST API Request received for url: {}, headers: {}, params: {}, body:{}", url, headers, params, body);
     try (CloseableHttpClient restClient = createHttpClient()) {
       try {
         String urlWithParams = addParams(url, params);
