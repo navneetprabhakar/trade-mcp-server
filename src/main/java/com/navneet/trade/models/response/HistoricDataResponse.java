@@ -1,5 +1,6 @@
 package com.navneet.trade.models.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,6 +18,7 @@ import java.util.List;
  * @author navneet.prabhakar
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class HistoricDataResponse {
     private String status;
     private Payload payload;
@@ -36,6 +38,7 @@ public class HistoricDataResponse {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Payload {
         @JsonDeserialize(contentUsing = CandleDeserializer.class)
         private List<Candle> candles;
@@ -54,6 +57,7 @@ public class HistoricDataResponse {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Candle {
         private String timestamp;
         private Double open;

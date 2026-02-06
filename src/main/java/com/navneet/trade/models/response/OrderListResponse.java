@@ -1,5 +1,6 @@
 package com.navneet.trade.models.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderListResponse {
     private String status;
     private Payload payload;
@@ -22,6 +24,7 @@ public class OrderListResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Payload {
         @JsonProperty("order_list")
         private List<Order> orderList;
@@ -31,6 +34,7 @@ public class OrderListResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Order {
         @JsonProperty("groww_order_id")
         private String growwOrderId;

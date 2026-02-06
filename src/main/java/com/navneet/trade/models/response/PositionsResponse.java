@@ -1,5 +1,6 @@
 package com.navneet.trade.models.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PositionsResponse {
 
   private String status;
@@ -24,6 +26,7 @@ public class PositionsResponse {
   @AllArgsConstructor
   @NoArgsConstructor
   @Builder
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Payload {
     private List<Position> positions;
   }
@@ -32,6 +35,7 @@ public class PositionsResponse {
   @AllArgsConstructor
   @NoArgsConstructor
   @Builder
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Position {
 
     @JsonProperty("trading_symbol")

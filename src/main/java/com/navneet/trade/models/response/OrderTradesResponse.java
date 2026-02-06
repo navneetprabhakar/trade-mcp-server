@@ -1,5 +1,6 @@
 package com.navneet.trade.models.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.navneet.trade.constants.Exchange;
 import com.navneet.trade.constants.Segment;
 import com.navneet.trade.constants.TransactionType;
@@ -17,6 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderTradesResponse {
     private String status;
     private Payload payload;
@@ -25,6 +27,7 @@ public class OrderTradesResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Payload {
         @JsonProperty("trade_list")
         private List<Trade> tradeList;
@@ -34,6 +37,7 @@ public class OrderTradesResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Trade {
         private Double price;
         private String isin;

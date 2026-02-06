@@ -1,5 +1,6 @@
 package com.navneet.trade.models.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.navneet.trade.constants.OrderStatus;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateOrderResponse {
 
   private String status;
@@ -23,6 +25,7 @@ public class CreateOrderResponse {
   @AllArgsConstructor
   @NoArgsConstructor
   @Builder
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Payload {
 
     @JsonProperty("groww_order_id")
