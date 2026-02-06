@@ -48,7 +48,7 @@ public class GrowwServiceImpl implements GrowwService {
     return null;
   }
 
-  @McpTool(name = "Fetch Historic Data",
+  @McpTool(name = "fetch_historic_data",
       description = "Retrieves historical candlestick data (OHLCV - Open, High, Low, Close, Volume) for a "
           + "specific financial instrument from Groww API. "
           + "Supports multiple time intervals (1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M) and date ranges for "
@@ -73,7 +73,7 @@ public class GrowwServiceImpl implements GrowwService {
     }
   }
 
-  @McpTool(name="Fetch Entities",
+  @McpTool(name="fetch_entities",
       description="Searches and retrieves financial instruments (stocks, derivatives, commodities) from the "
           + "database based on partial name matching, exchange (NSE, BSE, MCX), "
           + "and segment (CASH, FNO, COMMODITY). Returns detailed instrument information including"
@@ -90,7 +90,7 @@ public class GrowwServiceImpl implements GrowwService {
     }
   }
 
-  @McpTool(name="Fetch Holdings",
+  @McpTool(name="fetch_holdings",
       description="Retrieves the current holdings of financial instruments (stocks, derivatives, commodities) "
           + "from the user's Groww account. Provides detailed information on each holding "
           + "including quantity, average price, current market value, profit/loss, and other relevant metrics.")
@@ -103,7 +103,7 @@ public class GrowwServiceImpl implements GrowwService {
     }
   }
 
-  @McpTool(name = "Fetch User Positions",
+  @McpTool(name = "fetch_user_positions",
       description = "Retrieves the current open positions of financial instruments (stocks, derivatives, commodities) "
           + "from the user's Groww account for a specified market segment (CASH, FNO, COMMODITY). "
           + "Provides detailed information on each position including quantity, average price, "
@@ -113,7 +113,7 @@ public class GrowwServiceImpl implements GrowwService {
     return helper.fetchUserPositions(segment);
   }
 
-  @McpTool(name = "Fetch Position by Trading Symbol",
+  @McpTool(name = "fetch_position_trading_symbol",
       description = "Retrieves the current open position of a specific financial instrument "
           + "(stock, derivative, commodity) from the user's Groww account based on the provided trading symbol "
           + "and market segment (CASH, FNO, COMMODITY). Provides detailed information on the position "
