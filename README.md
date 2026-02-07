@@ -18,7 +18,7 @@ A Spring Boot-based Model Context Protocol (MCP) server for stock trading operat
 - **Order History**: Retrieve comprehensive order list and order details
 - **PostgreSQL Database**: Persistent storage with JPA/Hibernate
 - **Caching**: Caffeine cache implementation for improved performance
-- **Code Optimization**: Refactored order service with centralized API handler (OrderApiHelper)
+- **Code Optimization**: Refactored order service with centralized API handler (OrderServiceHelper)
 
 ## 📋 Prerequisites
 
@@ -31,7 +31,7 @@ A Spring Boot-based Model Context Protocol (MCP) server for stock trading operat
 
 - **Framework**: Spring Boot 3.5.10
 - **AI Integration**: Spring AI 1.1.2 with MCP Server
-- **Database**: PostgreSQL with Spring Data JPA
+- **Database**: PostgreSQL 42.7.9 with Spring Data JPA
 - **HTTP Client**: Apache HttpClient 5.5
 - **Caching**: Caffeine Cache 3.2.3
 - **CSV Processing**: Apache Commons CSV 1.11.0
@@ -99,88 +99,32 @@ cd trade-mcp-server
 
 The server will start on `http://localhost:8082`
 
-## 🔌 API Endpoints
+## 🤖 MCP-First Architecture
 
-### 1. Generate Token
-```http
-GET /v1/groww/generate-token
-```
-Generates a new authentication token for Groww API.
+This application is designed as an **MCP Server** for AI agent interactions. All trading operations are exposed as MCP tools rather than REST APIs:
 
-**Response:**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "expiresAt": "2026-02-05T10:30:00",
-  "tokenType": "Bearer"
-}
-```
+- **AI-Native**: Tools are optimized for AI agents (Claude, ChatGPT, etc.)
+- **Type-Safe**: All tools use strongly-typed request/response models
+- **Self-Documenting**: Tool descriptions are embedded in the code using `@McpTool` annotations
+- **REST APIs**: Limited to internal operations (token generation, CSV ingestion)
 
-### 2. Ingest Instruments Data
-```http
-GET /v1/groww/ingest-instruments?filepath=/path/to/instruments.csv
-```
-Imports instruments data from a CSV file with batch processing.
+To interact with this server, connect it to an MCP-compatible AI client using the Spring AI MCP protocol.
+
+## 🛠️ MCP Tools
+
+This server exposes the following MCP tools for AI agents to interact with trading operations:
+
+### Market Data Tools
+
+#### 1. `fetch_historic_data`
+Retrieves historical candlestick data (OHLCV - Open, High, Low, Close, Volume) for technical analysis and charting.
 
 **Parameters:**
-- `filepath`: Path to the CSV file
+- `request` (HistoricDataRequest): Contains symbol, exchange, interval, from and to dates
 
-**Response:**
-```text
-Ingestion initiated for file: /path/to/instruments.csv
-```
+**Supported Intervals:** 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M
 
-**CSV Format:**
-```csv
-exchange,exchange_token,trading_symbol,groww_symbol,name,instrument_type,segment,...
-NSE,123456,RELIANCE,RELIANCE,Reliance Industries Ltd,EQ,CASH,...
-```
-
-### 3. Fetch Instruments
-```http
-POST /v1/groww/fetch-entities
-Content-Type: application/json
-```
-
-Fetches instruments matching specified criteria.
-
-**Request Body:**
-```json
-{
-  "name": "RELIANCE",
-  "exchange": "NSE",
-  "segment": "CASH"
-}
-```
-
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "exchange": "NSE",
-    "exchangeToken": "123456",
-    "tradingSymbol": "RELIANCE",
-    "growwSymbol": "RELIANCE",
-    "name": "Reliance Industries Ltd",
-    "instrumentType": "EQ",
-    "segment": "CASH",
-    "lotSize": 1,
-    "tickSize": 0.05,
-    ...
-  }
-]
-```
-
-### 4. Fetch Historic Data
-```http
-POST /v1/groww/fetch-historic-data
-Content-Type: application/json
-```
-
-Fetches historical candlestick data for an instrument.
-
-**Request Body:**
+**Example:**
 ```json
 {
   "symbol": "RELIANCE",
@@ -191,381 +135,147 @@ Fetches historical candlestick data for an instrument.
 }
 ```
 
-**Response:**
-```json
-{
-  "candles": [
-    {
-      "timestamp": "2026-01-01T09:15:00",
-      "open": 2500.50,
-      "high": 2550.00,
-      "low": 2490.00,
-      "close": 2545.75,
-      "volume": 1500000
-    }
-  ]
-}
-```
-
-### 5. Fetch Holdings
-```http
-GET /v1/groww/fetch-holdings
-```
-
-Fetches all holdings from the user's portfolio.
-
-**Response:**
-```json
-{
-  "status": "success",
-  "payload": {
-    "holdings": [
-      {
-        "isin": "INE002A01018",
-        "tradingSymbol": "RELIANCE",
-        "quantity": 50,
-        "averagePrice": 2450.50,
-        "pledgeQuantity": 0,
-        "dematLockedQuantity": 0,
-        "growwLockedQuantity": 0.0,
-        "repledgeQuantity": 0.0,
-        "t1Quantity": 0,
-        "dematFreeQuantity": 50,
-        "corporateActionAdditionalQuantity": 0,
-        "activeDematTransferQuantity": 0
-      }
-    ]
-  }
-}
-```
-
-### 6. Fetch Positions
-```http
-GET /v1/groww/fetch-positions?segment=CASH
-```
-
-Fetches all open positions for a specific segment.
+#### 2. `fetch_entities`
+Searches and retrieves financial instruments from the database based on partial name matching, exchange, and segment.
 
 **Parameters:**
-- `segment`: Trading segment (CASH, FNO, COMMODITY)
+- `request` (EntityRequest): Contains name, exchange (NSE, BSE, MCX), and segment (CASH, FNO, COMMODITY)
 
-**Response:**
+**Returns:** List of instruments with trading symbols, lot sizes, tick sizes, and trading permissions
+
+**Example:**
 ```json
 {
-  "status": "success",
-  "payload": {
-    "positions": [
-      {
-        "tradingSymbol": "TCS",
-        "creditQuantity": 10,
-        "creditPrice": 3500.50,
-        "debitQuantity": 0,
-        "debitPrice": 0.0,
-        "carryForwardCreditQuantity": 0,
-        "carryForwardCreditPrice": 0.0,
-        "carryForwardDebitQuantity": 0,
-        "carryForwardDebitPrice": 0.0,
-        "exchange": "NSE",
-        "symbolIsin": "INE467B01029",
-        "quantity": 10,
-        "product": "INTRADAY",
-        "netCarryForwardQuantity": 0,
-        "netPrice": 3500.50,
-        "netCarryForwardPrice": 0.0,
-        "realisedPnl": 0.0
-      }
-    ]
-  }
+  "name": "RELIANCE",
+  "exchange": "NSE",
+  "segment": "CASH"
 }
 ```
 
-### 7. Fetch Stock Positions
-```http
-GET /v1/groww/fetch-stock-positions?segment=CASH&trading_symbol=TCS
-```
+### Portfolio Tools
 
-Fetches position for a specific trading symbol within a segment.
+#### 3. `fetch_holdings`
+Retrieves all holdings from the user's Groww portfolio with detailed quantity and price information.
+
+**Parameters:** None
+
+**Returns:** Holdings with quantity, average price, locked quantities, and free quantities
+
+#### 4. `fetch_user_positions`
+Retrieves current open positions for a specified market segment.
 
 **Parameters:**
-- `segment`: Trading segment (CASH, FNO, COMMODITY)
-- `trading_symbol`: The trading symbol (e.g., TCS, RELIANCE)
+- `segment` (Segment): Market segment - CASH, FNO, or COMMODITY
 
-**Response:**
+**Returns:** Positions with credit/debit quantities, prices, and realized P&L
+
+#### 5. `fetch_position_trading_symbol`
+Retrieves position for a specific trading symbol within a segment.
+
+**Parameters:**
+- `segment` (Segment): Market segment - CASH, FNO, or COMMODITY
+- `tradingSymbol` (String): Stock trading symbol (e.g., "TCS", "RELIANCE")
+
+**Returns:** Position details with quantity, average price, and P&L
+
+### Order Management Tools
+
+#### 6. `create_new_order`
+Creates a new buy or sell order with support for multiple order types.
+
+**Parameters:**
+- `request` (CreateOrderRequest): Order details including:
+  - `tradingSymbol`: Stock symbol
+  - `quantity`: Number of shares
+  - `price`: Order price
+  - `triggerPrice`: Stop loss trigger price (for SL orders)
+  - `validity`: DAY or IOC
+  - `exchange`: NSE, BSE, or MCX
+  - `segment`: CASH, FNO, or COMMODITY
+  - `product`: CNC, INTRADAY, or MTF
+  - `orderType`: MARKET, LIMIT, SL, or SL-M
+  - `transactionType`: BUY or SELL
+  - `orderReferenceId`: Unique client reference
+
+**Example:**
 ```json
 {
-  "status": "success",
-  "payload": {
-    "positions": [
-      {
-        "tradingSymbol": "TCS",
-        "creditQuantity": 10,
-        "creditPrice": 3500.50,
-        "debitQuantity": 0,
-        "debitPrice": 0.0,
-        "exchange": "NSE",
-        "symbolIsin": "INE467B01029",
-        "quantity": 10,
-        "product": "INTRADAY",
-        "netPrice": 3500.50,
-        "realisedPnl": 0.0
-      }
-    ]
-  }
-}
-```
-
-### 8. Create Order
-```http
-POST /v1/orders/create
-Content-Type: application/json
-```
-
-Place a new buy or sell order with various order types.
-
-**Request Body:**
-```json
-{
-  "trading_symbol": "WIPRO",
+  "tradingSymbol": "WIPRO",
   "quantity": 100,
   "price": 2500,
-  "trigger_price": 2450,
+  "triggerPrice": 2450,
   "validity": "DAY",
   "exchange": "NSE",
   "segment": "CASH",
   "product": "CNC",
-  "order_type": "SL",
-  "transaction_type": "BUY",
-  "order_reference_id": "Ab-654321234-1628190"
+  "orderType": "SL",
+  "transactionType": "BUY",
+  "orderReferenceId": "Ab-654321234-1628190"
 }
 ```
 
-**Response:**
-```json
-{
-  "status": "SUCCESS",
-  "payload": {
-    "groww_order_id": "GMK39038RDT490CCVRO",
-    "order_status": "OPEN",
-    "order_reference_id": "Ab-654321234-1628190",
-    "remark": "Order placed successfully"
-  }
-}
-```
-
-### 9. Modify Order
-```http
-POST /v1/orders/modify
-Content-Type: application/json
-```
-
+#### 7. `modify_order`
 Modifies an existing order's price and/or quantity.
 
-**Request Body:**
+**Parameters:**
+- `request` (ModifyOrderRequest): Contains order ID and new parameters (price, quantity, validity)
+
+**Example:**
 ```json
 {
-  "groww_order_id": "GMK39038RDT490CCVRO",
+  "growwOrderId": "GMK39038RDT490CCVRO",
   "price": 2550,
   "quantity": 150,
   "validity": "DAY"
 }
 ```
 
-**Response:**
-```json
-{
-  "status": "SUCCESS",
-  "payload": {
-    "groww_order_id": "GMK39038RDT490CCVRO",
-    "order_status": "OPEN",
-    "remark": "Order modified successfully"
-  }
-}
-```
-
-### 10. Cancel Order
-```http
-POST /v1/orders/cancel
-Content-Type: application/json
-```
-
+#### 8. `cancel_order`
 Cancels an existing open order.
 
-**Request Body:**
+**Parameters:**
+- `request` (CancelOrderRequest): Contains order ID to cancel
+
+**Example:**
 ```json
 {
-  "groww_order_id": "GMK39038RDT490CCVRO"
+  "growwOrderId": "GMK39038RDT490CCVRO"
 }
 ```
 
-**Response:**
-```json
-{
-  "status": "SUCCESS",
-  "payload": {
-    "groww_order_id": "GMK39038RDT490CCVRO",
-    "order_status": "CANCELLED",
-    "remark": "Order cancelled successfully"
-  }
-}
-```
+### Order Tracking Tools
 
-### 11. Fetch Order Status
-```http
-GET /v1/orders/status/{groww_order_id}?segment=CASH
-```
-
+#### 9. `fetch_order_status`
 Fetches the current status of a specific order.
 
 **Parameters:**
-- `segment`: Trading segment (CASH, FNO, COMMODITY)
+- `request` (OrderStatusRequest): Contains order ID and segment
 
-**Response:**
-```json
-{
-  "status": "SUCCESS",
-  "payload": {
-    "groww_order_id": "GMK39038RDT490CCVRO",
-    "order_status": "OPEN",
-    "remark": "Order placed successfully",
-    "filled_quantity": 100,
-    "order_reference_id": "Ab-654321234-1628190"
-  }
-}
-```
+**Returns:** Order status, filled quantity, and order reference
 
-### 12. Fetch Trades for Order
-```http
-GET /v1/orders/trades/{order_id}?segment=CASH&page=0&page_size=10
-```
-
+#### 10. `fetch_trades_for_order`
 Fetches all trades associated with a specific order.
 
 **Parameters:**
-- `segment`: Trading segment (CASH, FNO, COMMODITY)
-- `page`: Page number for pagination (default: 0)
-- `page_size`: Number of records per page (default: 10)
+- `request` (OrderTradesRequest): Contains order ID, segment, page number, and page size
 
-**Response:**
-```json
-{
-  "status": "SUCCESS",
-  "payload": {
-    "trade_list": [
-      {
-        "price": 2500,
-        "isin": "ISN378331005",
-        "quantity": 100,
-        "groww_order_id": "GROW123456",
-        "groww_trade_id": "TRADE123456",
-        "exchange_trade_id": "EXCH123456",
-        "exchange_order_id": "EXORD123456",
-        "trade_status": "COMPLETED",
-        "trading_symbol": "AAPL",
-        "remark": "Trade executed successfully",
-        "exchange": "NSE",
-        "segment": "CASH",
-        "product": "CNC",
-        "transaction_type": "BUY",
-        "created_at": "2024-08-24T14:15:22Z",
-        "trade_date_time": "2024-08-24T14:15:22Z",
-        "settlement_number": "SETTLE123456"
-      }
-    ]
-  }
-}
-```
+**Returns:** List of executed trades with price, quantity, timestamps, and settlement details
 
-### 13. Fetch Order List
-```http
-GET /v1/orders/list?segment=CASH&page=0&page_size=100
-```
-
-Fetches the list of orders for a specific segment.
+#### 11. `fetch_order_list`
+Fetches the list of all orders for a specific segment.
 
 **Parameters:**
-- `segment`: Trading segment (CASH, FNO, COMMODITY)
-- `page`: Page number for pagination (default: 0)
-- `page_size`: Number of records per page (default: 100)
+- `segment` (Segment): CASH, FNO, or COMMODITY
 
-**Response:**
-```json
-{
-  "status": "SUCCESS",
-  "payload": {
-    "order_list": [
-      {
-        "groww_order_id": "GMK39038RDT490CCVRO",
-        "trading_symbol": "WIPRO",
-        "order_status": "OPEN",
-        "remark": "Order placed successfully",
-        "quantity": 100,
-        "price": 2500,
-        "trigger_price": 2450,
-        "filled_quantity": 100,
-        "remaining_quantity": 10,
-        "average_fill_price": 2500,
-        "deliverable_quantity": 10,
-        "amo_status": "PENDING",
-        "validity": "DAY",
-        "exchange": "NSE",
-        "order_type": "MARKET",
-        "transaction_type": "BUY",
-        "segment": "CASH",
-        "product": "CNC",
-        "created_at": "2023-10-01T10:15:30",
-        "exchange_time": "2023-10-01T10:15:30",
-        "trade_date": "2019-08-24T14:15:22Z",
-        "order_reference_id": "Ab-654321234-1628190"
-      }
-    ]
-  }
-}
-```
+**Returns:** List of orders with complete order details, execution status, and metadata
 
-### 14. Fetch Order Details
-```http
-GET /v1/orders/details/{groww_order_id}?segment=CASH
-```
-
+#### 12. `fetch_order_details`
 Fetches detailed information for a specific order.
 
 **Parameters:**
-- `segment`: Trading segment (CASH, FNO, COMMODITY)
+- `request` (OrderStatusRequest): Contains order ID and segment
 
-**Response:**
-```json
-{
-  "status": "SUCCESS",
-  "payload": {
-    "order_list": [
-      {
-        "groww_order_id": "GMK39038RDT490CCVRO",
-        "trading_symbol": "WIPRO",
-        "order_status": "OPEN",
-        "remark": "Order placed successfully",
-        "quantity": 100,
-        "price": 2500,
-        "trigger_price": 2450,
-        "filled_quantity": 100,
-        "remaining_quantity": 10,
-        "average_fill_price": 2500,
-        "deliverable_quantity": 10,
-        "amo_status": "PENDING",
-        "validity": "DAY",
-        "exchange": "NSE",
-        "order_type": "MARKET",
-        "transaction_type": "BUY",
-        "segment": "CASH",
-        "product": "CNC",
-        "created_at": "2023-10-01T10:15:30",
-        "exchange_time": "2023-10-01T10:15:30",
-        "trade_date": "2019-08-24T14:15:22Z",
-        "order_reference_id": "Ab-654321234-1628190"
-      }
-    ]
-  }
-}
-```
+**Returns:** Complete order details including execution information and timestamps
 
 ## 📊 Domain Models
 
@@ -678,9 +388,9 @@ com.navneet.trade/
 │   ├── ProductType.java
 │   ├── TransactionType.java
 │   └── GrowwConstants.java
-├── controller/              # REST controllers
-│   ├── GrowwController.java
-│   └── OrderController.java
+├── controller/              # REST controllers (internal use only)
+│   ├── GrowwController.java  # Token generation & CSV ingestion
+│   └── OrderController.java  # Disabled - testing purposes only
 ├── entity/                  # JPA entities
 │   ├── Instruments.java
 │   ├── dto/
@@ -696,8 +406,7 @@ com.navneet.trade/
 │   │   ├── ModifyOrderRequest.java
 │   │   ├── CancelOrderRequest.java
 │   │   ├── OrderStatusRequest.java
-│   │   ├── OrderTradesRequest.java
-│   │   └── OrderListRequest.java
+│   │   └── OrderTradesRequest.java
 │   └── response/
 │       ├── TokenResponse.java
 │       ├── HistoricDataResponse.java
@@ -716,7 +425,7 @@ com.navneet.trade/
 │   │   └── OrderServiceImpl.java
 │   └── helper/
 │       ├── GrowwServiceHelper.java
-│       └── OrderApiHelper.java
+│       └── OrderServiceHelper.java
 └── utils/                   # Utility classes
     ├── GrowwUtils.java
     └── RestUtils.java
@@ -732,9 +441,9 @@ The system uses an iterator pattern for memory-efficient CSV processing:
 // Uses instrumentsRepo.saveAll() for batch insertion
 ```
 
-### Code Optimization: OrderApiHelper
+### Code Optimization: OrderServiceHelper
 Reduced code duplication in order management operations:
-- **Centralized API Handling**: OrderApiHelper consolidates all REST API call logic (POST and GET)
+- **Centralized API Handling**: OrderServiceHelper consolidates all REST API call logic (POST and GET)
 - **Generic Methods**: `executePostCall()` and `executeGetCall()` handle all API interactions
 - **Response Handling**: Unified JSON deserialization and error handling
 - **Result**: 50% reduction in OrderServiceImpl code (192 → 96 lines)
