@@ -30,15 +30,18 @@ A Spring Boot-based Model Context Protocol (MCP) server for stock trading operat
 ## 🛠️ Technology Stack
 
 - **Framework**: Spring Boot 3.5.10
-- **AI Integration**: Spring AI 1.1.2 with MCP Server
+- **AI Integration**: Spring AI 1.1.2 with MCP Server Support
 - **Database**: PostgreSQL 42.7.9 with Spring Data JPA
 - **HTTP Client**: Apache HttpClient 5.5
-- **Caching**: Caffeine Cache 3.2.3
+- **Caching**: Caffeine Cache 3.2.3 with Spring Cache abstraction
 - **CSV Processing**: Apache Commons CSV 1.11.0
+- **Code Generation**: Project Lombok (Annotations: @Data, @Builder, @Slf4j, etc.)
 - **Build Tool**: Maven
 - **Java**: 21
 
 ## ⚙️ Configuration
+
+### Environment Variables
 
 Create the following environment variables:
 
@@ -53,7 +56,9 @@ export GROWW_API_KEY=your_groww_api_key
 export GROWW_SECRET_KEY=your_groww_secret_key
 ```
 
-Or configure them in `application.yaml`:
+### Application Configuration File
+
+Configure settings in `application.yaml`:
 
 ```yaml
 spring:
@@ -61,23 +66,66 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: trade-mcp-server
+        version: 1.0.0
 
 groww:
   api-key: ${GROWW_API_KEY}
   secret: ${GROWW_SECRET_KEY}
+  base-url: https://api.groww.in/v1/
+
+server:
+  port: 8082
 ```
 
-## 🗄�� Database Setup
+### Groww API Endpoints
 
-Run the schema script to create the instruments table:
+The application is configured with the following Groww API endpoints:
+- **Token Generation**: `token/api/access`
+- **Historic Data**: `historical/candle/range`
+- **Holdings**: `holdings/user`
+- **Positions**: `positions/user`, `positions/trading-symbol`
+- **Orders**: `order/list`, `order/create`, `order/details`, `order/modify`, `order/cancel`, `order/status`, `order/trades`
 
-```sql
+## 🗄️ Database Setup
+
+### Creating the Database
+
+First, create a PostgreSQL database named `trade_db`:
+
+```bash
+psql -U postgres -c "CREATE DATABASE trade_db;"
+```
+
+### Running the Schema Script
+
+Then, run the schema script to create the instruments table:
+
+```bash
 psql -U your_username -d trade_db -f src/main/resources/schema.sql
 ```
 
+### Schema Details
+
 The schema includes:
-- Instruments table with 22 fields
-- Indexes on frequently queried columns (name, trading_symbol, exchange, segment)
+- **Instruments Table**: Main table for storing financial instruments with 22 fields
+- **Indexes**: Optimized queries with indexes on:
+  - `name` (instrument name search)
+  - `trading_symbol` (stock symbol lookup)
+  - `exchange` (market exchange filtering)
+  - `segment` (market segment filtering)
+
+### Hibernate Configuration
+
+The application uses `hibernate.ddl-auto=none`, meaning:
+- ✅ Manual schema management via SQL scripts
+- ✅ Better control over migrations
+- ✅ Safer for production environments
+- ✅ Schema changes require explicit SQL execution
 
 ## 📦 Installation
 
@@ -110,9 +158,30 @@ This application is designed as an **MCP Server** for AI agent interactions. All
 
 To interact with this server, connect it to an MCP-compatible AI client using the Spring AI MCP protocol.
 
+## 📚 MCP Best Practices
+
+This implementation follows MCP best practices:
+
+1. **Stateless Tool Design**: Each tool is independent and can be called in any order
+2. **Consistent Naming**: Tool names follow snake_case convention (`fetch_historic_data`, `create_new_order`, etc.)
+3. **Clear Descriptions**: Each tool has a clear description explaining its purpose
+4. **Type Safety**: All parameters are strongly typed with validation
+5. **Error Handling**: Comprehensive error responses for debugging
+6. **Pagination Support**: Order tracking tools include pagination parameters
+7. **Segment Support**: Tools recognize different market segments (CASH, FNO, COMMODITY)
+
 ## 🛠️ MCP Tools
 
-This server exposes the following MCP tools for AI agents to interact with trading operations:
+This server exposes the following MCP tools for AI agents to interact with trading operations.
+
+### Tool Categories
+
+- **Market Data Tools** (2): Historic data and instrument search
+- **Portfolio Tools** (3): Holdings and positions management
+- **Order Management Tools** (3): Order placement, modification, and cancellation
+- **Order Tracking Tools** (4): Order status, trades, history, and details
+
+Total: **12 MCP Tools**
 
 ### Market Data Tools
 
@@ -375,30 +444,32 @@ Represents list of orders for a segment:
 
 ## 🏗️ Architecture
 
+The application follows a layered architecture pattern with clear separation of concerns:
+
 ```
 com.navneet.trade/
 ├── config/                  # Configuration classes
 │   └── CacheConfig.java     # Caffeine cache configuration
-├── constants/               # Application constants
-│   ├── CandleIntervals.java
-│   ├── Exchange.java
-│   ├── Segment.java
-│   ├── OrderType.java
-│   ├── OrderStatus.java
-│   ├── ProductType.java
-│   ├── TransactionType.java
-│   └── GrowwConstants.java
+├── constants/               # Application constants and enums
+│   ├── CandleIntervals.java # Supported candle intervals
+│   ├── Exchange.java        # Market exchanges (NSE, BSE, MCX)
+│   ├── Segment.java         # Market segments (CASH, FNO, COMMODITY)
+│   ├── OrderType.java       # Order types (MARKET, LIMIT, SL, SL-M)
+│   ├── OrderStatus.java     # Order statuses
+│   ├── ProductType.java     # Product types (CNC, INTRADAY, MTF)
+│   ├── TransactionType.java # Transaction types (BUY, SELL)
+│   └── GrowwConstants.java  # Groww API constants
 ├── controller/              # REST controllers (internal use only)
 │   ├── GrowwController.java  # Token generation & CSV ingestion
 │   └── OrderController.java  # Disabled - testing purposes only
-├── entity/                  # JPA entities
-│   ├── Instruments.java
+├── entity/                  # JPA entities and data access
+│   ├── Instruments.java     # Instrument entity with @Entity annotation
 │   ├── dto/
-│   │   └── InstrumentsDto.java
+│   │   └── InstrumentsDto.java # DTO for data transfer
 │   └── repo/
-│       └── InstrumentsRepo.java
-├── models/                  # Request/Response models
-│   ├── request/
+│       └── InstrumentsRepo.java # Spring Data JPA repository
+├── models/                  # Request/Response models for API contracts
+│   ├── request/             # Request DTOs
 │   │   ├── EntityRequest.java
 │   │   ├── HistoricDataRequest.java
 │   │   ├── TokenRequest.java
@@ -407,7 +478,7 @@ com.navneet.trade/
 │   │   ├── CancelOrderRequest.java
 │   │   ├── OrderStatusRequest.java
 │   │   └── OrderTradesRequest.java
-│   └── response/
+│   └── response/            # Response DTOs
 │       ├── TokenResponse.java
 │       ├── HistoricDataResponse.java
 │       ├── HoldingsResponse.java
@@ -417,29 +488,37 @@ com.navneet.trade/
 │       ├── OrderStatusResponse.java
 │       ├── OrderTradesResponse.java
 │       └── OrderListResponse.java
-├── service/                 # Business logic
-│   ├── GrowwService.java
-│   ├── OrderService.java
-│   ├── impl/
-│   │   ├── GrowwServiceImpl.java
-│   │   └── OrderServiceImpl.java
-│   └── helper/
-│       ├── GrowwServiceHelper.java
-│       └── OrderServiceHelper.java
-└── utils/                   # Utility classes
-    ├── GrowwUtils.java
-    └── RestUtils.java
+├── service/                 # Business logic and service layer
+│   ├── GrowwService.java    # Groww-related operations interface
+│   ├── OrderService.java    # Order management interface
+│   ├── impl/                # Service implementations
+│   │   ├── GrowwServiceImpl.java   # Implements Groww operations
+│   │   └── OrderServiceImpl.java   # Implements order operations
+│   └── helper/              # Helper classes for code reuse
+│       ├── GrowwServiceHelper.java     # Centralized Groww API calls
+│       └── OrderServiceHelper.java    # Centralized order API calls
+└── utils/                   # Utility and helper functions
+    ├── GrowwUtils.java      # Groww-specific utilities
+    └── RestUtils.java       # REST API utilities
 ```
+
+### Architecture Highlights
+
+- **Layered Architecture**: Clear separation between controller, service, and repository layers
+- **Helper Pattern**: OrderServiceHelper and GrowwServiceHelper consolidate API calls and reduce code duplication
+- **Repository Pattern**: Spring Data JPA for database access with custom queries
+- **Service Interface Pattern**: Abstract business logic behind service interfaces
+- **DTO Pattern**: Request/Response models provide API contracts and validation
+- **Enum Pattern**: Type-safe constants using enums instead of string literals
 
 ## 🔍 Key Features Implementation
 
 ### CSV Batch Ingestion
 The system uses an iterator pattern for memory-efficient CSV processing:
-```java
-// Reads CSV line by line
-// Builds batches of configurable size (e.g., 1000 records)
-// Uses instrumentsRepo.saveAll() for batch insertion
-```
+- **Line-by-Line Reading**: Reads CSV files without loading entire file into memory
+- **Batch Processing**: Builds batches of configurable size (e.g., 1000 records)
+- **Bulk Insert**: Uses `instrumentsRepo.saveAll()` for efficient batch insertion
+- **Memory Efficient**: Ideal for processing large CSV files (100K+ records)
 
 ### Code Optimization: OrderServiceHelper
 Reduced code duplication in order management operations:
@@ -450,9 +529,10 @@ Reduced code duplication in order management operations:
 - **Benefit**: Bug fixes and enhancements in API communication now happen in one place
 
 ### Caching Strategy
-- Token caching with configurable expiry
-- Cache eviction support
-- Caffeine cache for high performance
+- **Token Caching**: Groww API tokens cached with configurable expiry
+- **Cache Eviction**: Support for manual cache eviction
+- **High Performance**: Caffeine cache for sub-millisecond lookups
+- **Spring Integration**: Seamless integration with Spring's @Cacheable annotation
 
 ### Repository Queries
 Custom JPA queries for flexible instrument searching:
@@ -461,12 +541,38 @@ findDistinctByNameContainingIgnoreCaseAndExchangeAndSegment(
     String name, String exchange, String segment
 )
 ```
+- **Case-Insensitive Search**: Finds instruments regardless of case
+- **Flexible Filtering**: Filter by exchange and segment simultaneously
+- **Distinct Results**: Removes duplicate entries
 
 ## 🧪 Testing
 
 Run tests with:
 ```bash
 ./mvnw test
+```
+
+### Running the Application
+
+**Using Maven Spring Boot Plugin:**
+```bash
+./mvnw spring-boot:run
+```
+
+**Using Java JAR:**
+```bash
+./mvnw clean package
+java -jar target/trade-mcp-server-0.0.1-SNAPSHOT.jar
+```
+
+**With Environment Variables:**
+```bash
+export DB_URL=jdbc:postgresql://localhost:5432/trade_db
+export DB_USERNAME=postgres
+export DB_PASSWORD=yourpassword
+export GROWW_API_KEY=your_key
+export GROWW_SECRET_KEY=your_secret
+./mvnw spring-boot:run
 ```
 
 ## 📝 License

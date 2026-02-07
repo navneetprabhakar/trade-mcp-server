@@ -49,13 +49,13 @@ public class GrowwServiceImpl implements GrowwService {
   }
 
   @McpTool(name = "fetch_historic_data",
-      description = "Retrieves historical candlestick data (OHLCV - Open, High, Low, Close, Volume) for a "
-          + "specific financial instrument from Groww API. "
-          + "Supports multiple time intervals (1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M) and date ranges for "
-          + "technical analysis and charting purposes.")
+      description = "Fetches historical OHLCV candlestick data for a financial instrument. "
+          + "Supports intervals: 1minute, 2minute, 3minute, 5minute, 10minute, 15minute, 30minute, 1hour, 4hour, 1day, 1week, 1month with customizable date ranges.")
   @Override
-  public HistoricDataResponse getHistoricData(@McpToolParam(description = "Request containing symbol, "
-      + "exchange, interval, from and to dates for fetching historical candlestick data") HistoricDataRequest request) {
+  public HistoricDataResponse getHistoricData(@McpToolParam(description = "Historic data request with fields: "
+      + "tradingSymbol (trading symbol), exchange (NSE/BSE/MCX), segment (CASH/FNO/COMMODITY), "
+      + "intervalInMinutes (1minute/2minute/3minute/5minute/10minute/15minute/30minute/1hour/4hour/1day/1week/1month), "
+      + "start_time (start time in epoch seconds), end_time (end time in epoch seconds)") HistoricDataRequest request) {
     try {
       return helper.fetchHistoricData(request);
     } catch (JsonProcessingException e) {

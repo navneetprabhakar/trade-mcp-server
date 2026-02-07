@@ -27,7 +27,7 @@ groww:
   api-key: ${GROWW_API_KEY}
   secret: ${GROWW_SECRET_KEY}
   token-url: token/api/access
-  historic-data-url: historical/candles
+  historic-data-url: historical/candle/range
   holdings-url: holdings/user
   positions-url: positions/user
   positions-trading-url: positions/trading-symbol
@@ -42,4 +42,3 @@ groww:
 
 server:
   port: 8082
-  connection-timeout: 90s

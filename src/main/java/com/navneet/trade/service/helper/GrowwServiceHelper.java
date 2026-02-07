@@ -273,10 +273,9 @@ public class GrowwServiceHelper {
     return Map.of(
         "exchange", request.getExchange().name(),
         "segment", request.getSegment().name(),
-        "groww_symbol", request.getGrowwSymbol(),
-        "start_time", request.getStartTime(),
-        "end_time", request.getEndTime(),
-        "candle_interval", request.getCandleInterval().getInterval()
+        "trading_symbol", request.getTradingSymbol(),
+        "start_time", String.valueOf(request.getStartTime()),
+        "end_time", String.valueOf(request.getEndTime())
     );
   }
 

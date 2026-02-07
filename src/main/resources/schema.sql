@@ -13,16 +13,16 @@ CREATE TABLE IF NOT EXISTS instruments (
     isin VARCHAR(50),
     underlying_symbol VARCHAR(100),
     underlying_exchange_token VARCHAR(100),
-    expiry_date DATE,
+    expiry_date VARCHAR(50),
     strike_price NUMERIC(15, 2),
     lot_size INTEGER,
     tick_size NUMERIC(10, 4),
     freeze_quantity INTEGER,
-    is_reserved BOOLEAN,
-    buy_allowed BOOLEAN,
-    sell_allowed BOOLEAN,
+    is_reserved INTEGER,
+    buy_allowed INTEGER,
+    sell_allowed INTEGER,
     internal_trading_symbol VARCHAR(100),
-    is_intraday BOOLEAN
+    is_intraday INTEGER
 );
 
 -- Create indexes for frequently queried columns

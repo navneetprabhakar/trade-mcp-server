@@ -32,7 +32,7 @@ public class RestUtils {
    */
   public ResponseEntity<String> restGetCall(
       String url, Map<String, String> headers, Map<String, String> params) {
-    log.debug("GET API Request received for url: {}, headers: REDACTED, params: {}", url, params);
+    log.info("GET API Request received for url: {}, headers: REDACTED, params: {}", url, params);
 
     try (CloseableHttpClient restClient = createHttpClient()) {
       try {

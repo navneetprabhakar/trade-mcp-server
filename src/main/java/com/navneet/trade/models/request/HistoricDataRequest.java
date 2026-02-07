@@ -16,13 +16,12 @@ public class HistoricDataRequest {
 
   public Exchange exchange;
   public Segment segment;
-  @JsonProperty("groww_symbol")
-  private String growwSymbol;
+  @JsonProperty("trading_symbol")
+  private String tradingSymbol;
   @JsonProperty("start_time")
-  private String startTime;
+  private Long startTime;
   @JsonProperty("end_time")
-  private String endTime;
-  @JsonProperty("candle_interval")
-  private CandleIntervals candleInterval;
+  private Long endTime;
+
 
 }

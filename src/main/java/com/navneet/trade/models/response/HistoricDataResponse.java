@@ -58,28 +58,25 @@ public class HistoricDataResponse {
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Candle {
-        private String timestamp;
+        private Long timestamp;
         private Double open;
         private Double high;
         private Double low;
         private Double close;
         private Long volume;
-        private Long openInterest;
 
         public Candle() {
         }
 
         public Candle(List<Object> candleData) {
-            if (candleData != null && candleData.size() >= 6) {
-                this.timestamp = (String) candleData.get(0);
+            if (candleData != null && candleData.size() >= 5) {
+                this.timestamp = ((Number) candleData.get(0)).longValue();
                 this.open = ((Number) candleData.get(1)).doubleValue();
                 this.high = ((Number) candleData.get(2)).doubleValue();
                 this.low = ((Number) candleData.get(3)).doubleValue();
                 this.close = ((Number) candleData.get(4)).doubleValue();
                 this.volume = ((Number) candleData.get(5)).longValue();
-                this.openInterest = candleData.size() > 6 && candleData.get(6) != null
-                    ? ((Number) candleData.get(6)).longValue()
-                    : null;
+
             }
         }
     }
